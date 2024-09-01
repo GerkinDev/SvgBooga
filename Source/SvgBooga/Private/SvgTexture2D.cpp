@@ -6,6 +6,7 @@
 #endif
 #include "Engine/Texture2D.h"
 #include "RenderUtils.h"
+#include "Rendering/StreamableTextureResource.h"
 
 uint32 ConvertFLinearColorToInteger(const FLinearColor& Color)
 {
@@ -228,3 +229,84 @@ float USvgTexture2D::GetAspectRatio()
 {
 	return AspectRatio;
 }
+
+
+//#region For UTexture
+FTextureResource* USvgTexture2D::CreateResource() {
+	UE_LOG(LogTemp, Warning, TEXT("Create TextureResource from SVG Texture."));
+	FTextureResource* TextureResource = Texture->CreateResource();
+	UE_LOG(LogTemp, Warning, TEXT("TextureResource obtained."));
+	return TextureResource;
+}
+
+int32 USvgTexture2D::CalcCumulativeLODSize(int32 MipCount) const
+{
+	//return Texture->MaxTextureSize;
+	int32 Size = 0;
+	if (Texture->GetPlatformData())
+	{
+		static TConsoleVariableData<int32>* CVarReducedMode = IConsoleManager::Get().FindTConsoleVariableDataInt(TEXT("r.VirtualTextureReducedMemory"));
+		check(CVarReducedMode);
+
+		ETextureCreateFlags TexCreateFlags = (SRGB ? TexCreate_SRGB : TexCreate_None) | (bNoTiling ? TexCreate_NoTiling : TexCreate_None) | (bNotOfflineProcessed ? TexCreate_None : TexCreate_OfflineProcessed) | TexCreate_Streamable;
+		const bool bCanUsePartiallyResidentMips = CanCreateWithPartiallyResidentMips(TexCreateFlags);
+
+		const int32 SizeX = Texture->GetSizeX();
+		const int32 SizeY = Texture->GetSizeY();
+		const int32 NumMips = Texture->GetNumMips();
+		const int32 FirstMip = FMath::Max(0, NumMips - MipCount);
+		const EPixelFormat Format = Texture->GetPixelFormat();
+
+		// Must be consistent with the logic in FTexture2DResource::InitRHI
+		/*if (Texture->IsStreamable() && bCanUsePartiallyResidentMips && (!CVarReducedMode->GetValueOnAnyThread() || MipCount > Texture->GetMinTextureResidentMipCount()))
+		{
+			TexCreateFlags |= TexCreate_Virtual;
+			Size = (int32)RHICalcVMTexture2DPlatformSize(SizeX, SizeY, Format, NumMips, FirstMip, 1, TexCreateFlags, TextureAlign);
+		}
+		else
+		{*/
+			const FIntPoint MipExtents = CalcMipMapExtent(SizeX, SizeY, Format, FirstMip);
+			const FRHIResourceCreateInfo CreateInfo(Texture->GetPlatformData()->GetExtData());
+			FRHITextureDesc Desc(
+				ETextureDimension::Texture2D,
+				TexCreateFlags,
+				(EPixelFormat)Format,
+				CreateInfo.ClearValueBinding,
+				{ (int32)SizeX, (int32)SizeY },
+				1,
+				1,
+				(uint8)FMath::Max(1, MipCount),
+				(uint8)1,
+				CreateInfo.ExtData
+			);
+			FDynamicRHI::FRHICalcTextureSizeResult PlatformSize = RHICalcTexturePlatformSize(Desc, 0);
+			Size = (int32)PlatformSize.Size;
+			//MipExtents.X, MipExtents.Y, Format, FMath::Max(1, MipCount), 1, TexCreateFlags, FRHIResourceCreateInfo(Texture->GetPlatformData()->GetExtData()), TextureAlign);
+		//}
+	}
+	return Size;
+}
+float USvgTexture2D::GetSurfaceWidth() const {
+	return Texture->GetSurfaceWidth();
+}
+float USvgTexture2D::GetSurfaceHeight() const {
+	return Texture->GetSurfaceHeight();
+}
+float USvgTexture2D::GetSurfaceDepth() const {
+	return Texture->GetSurfaceDepth();
+}
+uint32 USvgTexture2D::GetSurfaceArraySize() const {
+	return Texture->GetSurfaceArraySize();
+}
+
+//#region for UStreamableRenderAsset
+bool USvgTexture2D::StreamOut(int32 NewMipCount)
+{
+	return Texture->StreamOut(NewMipCount);
+}
+bool USvgTexture2D::StreamIn(int32 NewMipCount, bool bHighPrio)
+{
+	return Texture->StreamIn(NewMipCount, bHighPrio);
+}
+//#endregion
+//#endregion

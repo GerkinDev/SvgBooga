@@ -13,7 +13,7 @@ namespace lunasvg
 }
 
 UCLASS(BlueprintType)
-class SVGBOOGA_API USvgTexture2D : public UObject
+class SVGBOOGA_API USvgTexture2D : public UTexture
 {
 	GENERATED_BODY()
 
@@ -68,5 +68,18 @@ protected:
 #endif
 
 	virtual void Serialize(FArchive& Ar) override;
-	void RecreateTexture();
+
+public:
+	//#region For UTexture
+	virtual FTextureResource* CreateResource() override;
+	virtual int32 CalcCumulativeLODSize(int32 NumLODs) const final override;
+	virtual float GetSurfaceWidth() const override;
+	virtual float GetSurfaceHeight() const override;
+	virtual float GetSurfaceDepth() const override;
+	virtual uint32 GetSurfaceArraySize() const override;
+	//#region for UStreamableRenderAsset
+	virtual bool StreamOut(int32 NewMipCount) override;
+	virtual bool StreamIn(int32 NewMipCount, bool bHighPrio) override;
+	//#endregion
+	//#endregion
 };

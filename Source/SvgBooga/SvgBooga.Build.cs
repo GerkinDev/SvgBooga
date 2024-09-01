@@ -29,7 +29,10 @@ public class SvgBooga : ModuleRules
 				"CoreUObject",
 				"LunaSvg",
 				"Engine",
-				"ImageCore"
+				"ImageCore",
+
+				"RenderCore",
+                "Renderer",
 				// ... add other public dependencies that you statically link with here ...
 			}
 		);
