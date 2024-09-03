@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
 #include "UObject/Object.h"
+#include "UObject/ObjectSaveContext.h"
 #include "Engine/Texture2D.h"
 #include "Templates/SharedPointer.h"
 #include "SvgTexture2D.generated.h"
@@ -77,6 +78,12 @@ public:
 	virtual float GetSurfaceHeight() const override;
 	virtual float GetSurfaceDepth() const override;
 	virtual uint32 GetSurfaceArraySize() const override;
+	virtual void PreSave(FObjectPreSaveContext ObjectSaveContext) override;
+	virtual bool IsReadyForAsyncPostLoad() const override;
+	virtual void PostLoad() override;
+	virtual bool IsCompiling() const override;
+	virtual bool IsCurrentlyVirtualTextured() const override;
+	virtual void UpdateResource() override;
 	//#region for UStreamableRenderAsset
 	virtual bool StreamOut(int32 NewMipCount) override;
 	virtual bool StreamIn(int32 NewMipCount, bool bHighPrio) override;

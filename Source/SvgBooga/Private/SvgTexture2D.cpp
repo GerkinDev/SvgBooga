@@ -1,4 +1,4 @@
-#include "SvgTexture2D.h"
+﻿#include "SvgTexture2D.h"
 
 #include "ImageUtils.h"
 #if WITH_EDITOR
@@ -6,7 +6,6 @@
 #endif
 #include "Engine/Texture2D.h"
 #include "RenderUtils.h"
-#include "Rendering/StreamableTextureResource.h"
 
 uint32 ConvertFLinearColorToInteger(const FLinearColor& Color)
 {
@@ -22,7 +21,7 @@ uint32 ConvertFLinearColorToInteger(const FLinearColor& Color)
 USvgTexture2D::USvgTexture2D(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D(ObjectInitializer)"));
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: USvgTexture2D(ObjectInitializer)"));
 	Texture = ObjectInitializer.CreateDefaultSubobject<UTexture2D>(this, TEXT("Texture"));
 }
 
@@ -30,11 +29,12 @@ USvgTexture2D::USvgTexture2D(const FObjectInitializer& ObjectInitializer)
 bool USvgTexture2D::UpdateTextureFromSvg(const FString& SvgFilePath, const int TextureWidth, const int TextureHeight,
                                          const FLinearColor InBackgroundColor = FLinearColor::Transparent)
 {
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: USvgTexture2D::UpdateTextureFromSvg()"));
 	BackgroundColor = InBackgroundColor;
 	const std::unique_ptr<lunasvg::Document> Document = lunasvg::Document::loadFromFile(TCHAR_TO_UTF8(*SvgFilePath));
 	if (!Document)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to load SVG file: %s"), *SvgFilePath);
+		UE_LOG(LogTemp, Error, TEXT("SvgBooga: Failed to load SVG file: %s"), *SvgFilePath);
 		return false;
 	}
 
@@ -60,7 +60,7 @@ bool USvgTexture2D::UpdateTextureFromSvg(const FString& SvgFilePath, const int T
 	                                                        ConvertFLinearColorToInteger(BackgroundColor));
 	if (!Bitmap.valid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to render SVG to bitmap."));
+		UE_LOG(LogTemp, Error, TEXT("SvgBooga: Failed to render SVG to bitmap."));
 		return false;
 	}
 
@@ -70,6 +70,7 @@ bool USvgTexture2D::UpdateTextureFromSvg(const FString& SvgFilePath, const int T
 
 TSharedPtr<FImage> USvgTexture2D::ConvertBitmapToImage(const lunasvg::Bitmap& Bitmap)
 {
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: USvgTexture2D::ConvertBitmapToImage()"));
 	TSharedPtr<FImage> Image = MakeShared<FImage>();
 	if (!Bitmap.valid())
 	{
@@ -108,21 +109,22 @@ TSharedPtr<FImage> USvgTexture2D::ConvertBitmapToImage(const lunasvg::Bitmap& Bi
 void USvgTexture2D::UpdateTextureFromImage(const TSharedPtr<FImage>& SourceImage, const int TextureWidth,
                                            const int TextureHeight)
 {
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: USvgTexture2D::UpdateTextureFromImage()"));
 	if (!IsInGameThread())
 	{
-		UE_LOG(LogTemp, Error, TEXT("UpdateTextureFromImage must be called on the game thread."));
+		UE_LOG(LogTemp, Error, TEXT("SvgBooga: UpdateTextureFromImage must be called on the game thread."));
 		return;
 	}
 
 	if (!SourceImage)
 	{
-		UE_LOG(LogTemp, Error, TEXT("SourceImage is not valid."));
+		UE_LOG(LogTemp, Error, TEXT("SvgBooga: SourceImage is not valid."));
 		return;
 	}
 
 	if (!Texture)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Texture is not initialized."));
+		UE_LOG(LogTemp, Error, TEXT("SvgBooga: Texture is not initialized."));
 		return;
 	}
 
@@ -181,7 +183,7 @@ void USvgTexture2D::UpdateTextureFromImage(const TSharedPtr<FImage>& SourceImage
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to lock MipMap data for writing."));
+		UE_LOG(LogTemp, Error, TEXT("SvgBooga: Failed to lock MipMap data for writing."));
 		return;
 	}
 
@@ -192,13 +194,19 @@ void USvgTexture2D::UpdateTextureFromImage(const TSharedPtr<FImage>& SourceImage
 void USvgTexture2D::UpdateTextureFromBitmap(const lunasvg::Bitmap& Bitmap, const int TextureWidth,
                                             const int TextureHeight)
 {
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: USvgTexture2D::UpdateTextureFromBitmap()"));
 	return UpdateTextureFromImage(ConvertBitmapToImage(Bitmap), TextureWidth, TextureHeight);
 }
 #endif
 
+inline int32 MipsCount(USvgTexture2D *SvgTexture) {
+	return SvgTexture->GetTexture()->GetPlatformData() == nullptr ? -1 :
+		SvgTexture->GetTexture()->GetPlatformData()->Mips.Num();
+}
+
 void USvgTexture2D::Serialize(FArchive& Ar)
 {
-	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::Serialize()"));
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: USvgTexture2D::Serialize() in mode %s"), Ar.IsSaving() ? TEXT("Save") : Ar.IsLoading() ? TEXT("Load") : TEXT("Other"));
 	Super::Serialize(Ar);
 
 	Ar << OriginalWidth;
@@ -206,7 +214,13 @@ void USvgTexture2D::Serialize(FArchive& Ar)
 	Ar << ImportPath;
 	Ar << AspectRatio;
 	Ar << BackgroundColor;
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::Serialize(): num mips before: %d"),
+		MipsCount(this));
 	Ar << Texture;
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::Serialize(): num mips after: %d"),
+		MipsCount(this));
 }
 
 UTexture2D* USvgTexture2D::GetTexture()
@@ -233,9 +247,12 @@ float USvgTexture2D::GetAspectRatio()
 
 //#region For UTexture
 FTextureResource* USvgTexture2D::CreateResource() {
-	UE_LOG(LogTemp, Warning, TEXT("Create TextureResource from SVG Texture."));
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: USvgTexture2D::CreateResource()"));
 	FTextureResource* TextureResource = Texture->CreateResource();
-	UE_LOG(LogTemp, Warning, TEXT("TextureResource obtained."));
+	UE_LOG(LogTemp, Warning, TEXT("SvgBooga: TextureResource obtained."));
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::CreateResource(): num mips after: %d (%d)"),
+		MipsCount(this), TextureResource->GetCurrentMipCount());
 	return TextureResource;
 }
 
@@ -254,6 +271,58 @@ float USvgTexture2D::GetSurfaceDepth() const {
 }
 uint32 USvgTexture2D::GetSurfaceArraySize() const {
 	return Texture->GetSurfaceArraySize();
+}
+void USvgTexture2D::PreSave(FObjectPreSaveContext ObjectSaveContext) {
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::PreSave(): num mips after: %d"),
+		MipsCount(this));
+	Super::PreSave(ObjectSaveContext);
+	Texture->PreSave(ObjectSaveContext);
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::PreSave(): num mips after: %d"),
+		MipsCount(this));
+}
+bool USvgTexture2D::IsReadyForAsyncPostLoad() const {
+	bool bReady =  Texture->IsReadyForAsyncPostLoad();
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::IsReadyForAsyncPostLoad(): ret val: %d"),
+		bReady);
+	return bReady;
+}
+void USvgTexture2D::PostLoad() {
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::PostLoad(): num mips before: %d"),
+		MipsCount(this));
+	Texture->PostLoad();
+	Super::PostLoad();
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::PostLoad(): num mips after: %d"),
+		MipsCount(this));
+}
+
+bool USvgTexture2D::IsCompiling() const {
+	bool Compiling = Texture->IsCompiling();
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::IsCompiling(): compiling: %d"),
+		Compiling);
+	return Compiling;
+}
+bool USvgTexture2D::IsCurrentlyVirtualTextured() const {
+	bool VirtuallyTextured = Texture->IsCurrentlyVirtualTextured();
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::IsCurrentlyVirtualTextured(): %d"),
+		VirtuallyTextured);
+	return VirtuallyTextured;
+}
+void USvgTexture2D::UpdateResource() {
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::UpdateResource(): num mips before: %d"),
+		MipsCount(this));
+	Texture->UpdateResource();
+	Super::UpdateResource();
+	UE_LOG(LogTemp, Warning,
+		TEXT("SvgBooga: USvgTexture2D::UpdateResource(): num mips after: %d"),
+		MipsCount(this));
 }
 
 //#region for UStreamableRenderAsset
