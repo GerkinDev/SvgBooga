@@ -295,28 +295,9 @@ bool USvgTexture2D::IsDefaultTexture() const
 		IsDefaultTexture);
 	return IsDefaultTexture;
 }
-void USvgTexture2D::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform) {
-	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::BeginCacheForCookedPlatformData()"));
-	Texture->BeginCacheForCookedPlatformData(TargetPlatform);
-}
-bool USvgTexture2D::IsCachedCookedPlatformDataLoaded(const ITargetPlatform* TargetPlatform) {
-	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::IsCachedCookedPlatformDataLoaded()"));
-	return Texture->IsCachedCookedPlatformDataLoaded(TargetPlatform);
-}
-void USvgTexture2D::ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform) {
-	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::ClearCachedCookedPlatformData()"));
-	Texture->ClearCachedCookedPlatformData(TargetPlatform);
-}
-void USvgTexture2D::ClearAllCachedCookedPlatformData() {
-	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::ClearAllCachedCookedPlatformData()"));
-	Texture->ClearAllCachedCookedPlatformData();
-}
 
 bool USvgTexture2D::IsCurrentlyVirtualTextured() const {
 	bool VirtuallyTextured = Texture->IsCurrentlyVirtualTextured();
-	/*UE_LOG(LogTemp, Warning,
-		TEXT("USvgTexture2D::IsCurrentlyVirtualTextured(): %d"),
-		VirtuallyTextured);*/
 	return VirtuallyTextured;
 }
 void USvgTexture2D::UpdateResource() {
@@ -324,16 +305,6 @@ void USvgTexture2D::UpdateResource() {
 	Texture->UpdateResource();
 	Super::UpdateResource();
 }
-void USvgTexture2D::BlockOnAnyAsyncBuild()
-{
-	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::BlockOnAnyAsyncBuild()"));
-	Texture->BlockOnAnyAsyncBuild();
-}
-//FTexturePlatformData** USvgTexture2D::GetRunningPlatformData()
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::GetRunningPlatformData()"));
-//	return Texture->GetRunningPlatformData();
-//}
 
 //#region for UStreamableRenderAsset
 bool USvgTexture2D::StreamOut(int32 NewMipCount)
