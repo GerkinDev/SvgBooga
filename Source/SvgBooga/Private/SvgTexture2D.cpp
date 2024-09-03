@@ -237,6 +237,10 @@ float USvgTexture2D::GetAspectRatio()
 //#region For UTexture
 FTextureResource* USvgTexture2D::CreateResource() {
 	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::CreateResource()"));
+	if (!Texture->IsAsyncCacheComplete()) {
+		UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::CreateResource(): cache not completed"));
+		Texture->BlockOnAnyAsyncBuild();
+	}
 	FTextureResource* TextureResource = Texture->CreateResource();
 	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::CreateResource() done"));
 	return TextureResource;
@@ -264,11 +268,11 @@ void USvgTexture2D::PreSave(FObjectPreSaveContext ObjectSaveContext) {
 	Texture->PreSave(ObjectSaveContext);
 }
 bool USvgTexture2D::IsReadyForAsyncPostLoad() const {
-	bool bReady = Texture->IsReadyForAsyncPostLoad();
+	bool Ready = Texture->IsReadyForAsyncPostLoad();
 	UE_LOG(LogTemp, Warning,
 		TEXT("USvgTexture2D::IsReadyForAsyncPostLoad(): ready: %d"),
-		bReady);
-	return bReady;
+		Ready);
+	return Ready;
 }
 void USvgTexture2D::PostLoad() {
 	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::PostLoad()"));
@@ -283,11 +287,36 @@ bool USvgTexture2D::IsCompiling() const {
 		Compiling);
 	return Compiling;
 }
+bool USvgTexture2D::IsDefaultTexture() const
+{
+	bool IsDefaultTexture = Texture->IsDefaultTexture();
+	UE_LOG(LogTemp, Warning,
+		TEXT("USvgTexture2D::IsDefaultTexture(): %d"),
+		IsDefaultTexture);
+	return IsDefaultTexture;
+}
+void USvgTexture2D::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform) {
+	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::BeginCacheForCookedPlatformData()"));
+	Texture->BeginCacheForCookedPlatformData(TargetPlatform);
+}
+bool USvgTexture2D::IsCachedCookedPlatformDataLoaded(const ITargetPlatform* TargetPlatform) {
+	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::IsCachedCookedPlatformDataLoaded()"));
+	return Texture->IsCachedCookedPlatformDataLoaded(TargetPlatform);
+}
+void USvgTexture2D::ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform) {
+	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::ClearCachedCookedPlatformData()"));
+	Texture->ClearCachedCookedPlatformData(TargetPlatform);
+}
+void USvgTexture2D::ClearAllCachedCookedPlatformData() {
+	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::ClearAllCachedCookedPlatformData()"));
+	Texture->ClearAllCachedCookedPlatformData();
+}
+
 bool USvgTexture2D::IsCurrentlyVirtualTextured() const {
 	bool VirtuallyTextured = Texture->IsCurrentlyVirtualTextured();
-	UE_LOG(LogTemp, Warning,
+	/*UE_LOG(LogTemp, Warning,
 		TEXT("USvgTexture2D::IsCurrentlyVirtualTextured(): %d"),
-		VirtuallyTextured);
+		VirtuallyTextured);*/
 	return VirtuallyTextured;
 }
 void USvgTexture2D::UpdateResource() {
@@ -295,6 +324,16 @@ void USvgTexture2D::UpdateResource() {
 	Texture->UpdateResource();
 	Super::UpdateResource();
 }
+void USvgTexture2D::BlockOnAnyAsyncBuild()
+{
+	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::BlockOnAnyAsyncBuild()"));
+	Texture->BlockOnAnyAsyncBuild();
+}
+//FTexturePlatformData** USvgTexture2D::GetRunningPlatformData()
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::GetRunningPlatformData()"));
+//	return Texture->GetRunningPlatformData();
+//}
 
 //#region for UStreamableRenderAsset
 bool USvgTexture2D::StreamOut(int32 NewMipCount)

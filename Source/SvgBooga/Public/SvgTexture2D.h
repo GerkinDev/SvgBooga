@@ -82,8 +82,14 @@ public:
 	virtual bool IsReadyForAsyncPostLoad() const override;
 	virtual void PostLoad() override;
 	virtual bool IsCompiling() const override;
+	virtual bool IsDefaultTexture() const override;
+	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform) override;
+	virtual bool IsCachedCookedPlatformDataLoaded(const ITargetPlatform* TargetPlatform) override;
+	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform) override;
+	virtual void ClearAllCachedCookedPlatformData() override;
 	virtual bool IsCurrentlyVirtualTextured() const override;
 	virtual void UpdateResource() override;
+	virtual void BlockOnAnyAsyncBuild() override;
 	//#region for UStreamableRenderAsset
 	virtual bool StreamOut(int32 NewMipCount) override;
 	virtual bool StreamIn(int32 NewMipCount, bool bHighPrio) override;
