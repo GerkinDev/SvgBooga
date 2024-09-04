@@ -85,6 +85,7 @@ public:
 	virtual bool IsDefaultTexture() const override;
 	virtual bool IsCurrentlyVirtualTextured() const override;
 	virtual void UpdateResource() override;
+	virtual EMaterialValueType GetMaterialType() const override;
 	//#region for UStreamableRenderAsset
 	virtual bool StreamOut(int32 NewMipCount) override;
 	virtual bool StreamIn(int32 NewMipCount, bool bHighPrio) override;

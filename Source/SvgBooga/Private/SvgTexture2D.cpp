@@ -305,6 +305,9 @@ void USvgTexture2D::UpdateResource() {
 	Texture->UpdateResource();
 	Super::UpdateResource();
 }
+EMaterialValueType USvgTexture2D::GetMaterialType() const {
+	return Texture->GetMaterialType();
+}
 
 //#region for UStreamableRenderAsset
 bool USvgTexture2D::StreamOut(int32 NewMipCount)
