@@ -237,10 +237,12 @@ float USvgTexture2D::GetAspectRatio()
 //#region For UTexture
 FTextureResource* USvgTexture2D::CreateResource() {
 	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::CreateResource()"));
+#if WITH_EDITOR
 	if (!Texture->IsAsyncCacheComplete()) {
 		UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::CreateResource(): cache not completed"));
 		Texture->BlockOnAnyAsyncBuild();
 	}
+#endif
 	FTextureResource* TextureResource = Texture->CreateResource();
 	UE_LOG(LogTemp, Warning, TEXT("USvgTexture2D::CreateResource() done"));
 	return TextureResource;
@@ -280,6 +282,7 @@ void USvgTexture2D::PostLoad() {
 	Super::PostLoad();
 }
 
+#if WITH_EDITOR
 bool USvgTexture2D::IsCompiling() const {
 	bool Compiling = Texture->IsCompiling();
 	UE_LOG(LogTemp, Warning,
@@ -295,6 +298,7 @@ bool USvgTexture2D::IsDefaultTexture() const
 		IsDefaultTexture);
 	return IsDefaultTexture;
 }
+#endif
 
 bool USvgTexture2D::IsCurrentlyVirtualTextured() const {
 	bool VirtuallyTextured = Texture->IsCurrentlyVirtualTextured();

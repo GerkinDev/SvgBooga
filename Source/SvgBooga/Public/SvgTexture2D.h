@@ -81,8 +81,10 @@ public:
 	virtual void PreSave(FObjectPreSaveContext ObjectSaveContext) override;
 	virtual bool IsReadyForAsyncPostLoad() const override;
 	virtual void PostLoad() override;
+#if WITH_EDITOR
 	virtual bool IsCompiling() const override;
 	virtual bool IsDefaultTexture() const override;
+#endif
 	virtual bool IsCurrentlyVirtualTextured() const override;
 	virtual void UpdateResource() override;
 	virtual EMaterialValueType GetMaterialType() const override;
